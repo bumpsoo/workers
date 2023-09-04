@@ -1,4 +1,4 @@
-package workers
+package main
 
 type errorString string
 

@@ -1,7 +1,7 @@
 // Package workers contains to use funtions to worker pool easily with generic
 // interfaces and structs
 // You could wrap your functions in a anonymous function and pass it
-package workers
+package main
 
 import (
 	"context"
