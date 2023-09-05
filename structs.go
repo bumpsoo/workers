@@ -2,6 +2,7 @@ package workers
 
 import (
 	"context"
+	"sync"
 )
 
 type (
@@ -13,6 +14,9 @@ type (
 	workers[ReqT any, ResT any] struct {
 		workChan chan coupled[ReqT, ResT]
 		size     int
+		end      chan bool
+		mtx      sync.Mutex
+		cnt      int
 	}
 
 	request[T any] struct {
@@ -50,7 +54,7 @@ func (worker workers[ReqT, ResT]) Execute(
 }
 
 func (worker workers[req, res]) Close() {
-	close(worker.workChan)
+	close(worker.end)
 }
 
 func (request request[T]) Context() context.Context {

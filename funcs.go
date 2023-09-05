@@ -2,18 +2,23 @@ package workers
 
 import (
 	"context"
+	"sync"
 )
 
+type work[ReqT any, ResT any] func(Request[ReqT]) Response[ResT]
+
 func WorkersWithFunc[ReqT any, ResT any](
-	fn func(Request[ReqT]) Response[ResT], size int,
+	fn work[ReqT, ResT], size int,
 ) Workers[ReqT, ResT] {
 	if size <= 0 {
 		size = 1
 	}
-	end := make(chan bool)
 	workers := workers[ReqT, ResT]{
 		workChan: make(chan coupled[ReqT, ResT], size),
 		size:     size,
+		end:      make(chan bool),
+		mtx:      sync.Mutex{},
+		cnt:      0,
 	}
 	go func() {
 		for {
@@ -24,8 +29,7 @@ func WorkersWithFunc[ReqT any, ResT any](
 					val.responseChan <- res
 					close(val.responseChan)
 				}()
-			case <-end:
-				close(end)
+			case <-workers.end:
 				close(workers.workChan)
 			}
 		}
