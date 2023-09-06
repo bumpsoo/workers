@@ -11,6 +11,20 @@ type (
 	}
 )
 
+func StartWorkers[ReqT any, ResT any](
+	fn work[ReqT, ResT], size int,
+) Workers[ReqT, ResT] {
+	if size <= 0 {
+		size = 1
+	}
+	workers := &workers[ReqT, ResT]{
+		fn:      fn,
+		size:    size,
+		counter: counter.NewCounter(),
+	}
+	return workers
+}
+
 func (w workers[req, res]) Size() int {
 	return w.size
 }
