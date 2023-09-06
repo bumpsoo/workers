@@ -1,6 +1,8 @@
 package workers
 
-import "github.com/bumpsoo/workers/counter"
+import (
+	"github.com/bumpsoo/workers/counter"
+)
 
 type (
 	workers[ReqT any, ResT any] struct {
@@ -21,39 +23,40 @@ func StartWorkers[ReqT any, ResT any](
 		fn:      fn,
 		size:    size,
 		counter: counter.NewCounter(),
+		closed:  false,
 	}
 	return workers
 }
 
-func (w workers[req, res]) Size() int {
+func (w *workers[req, res]) Size() int {
 	return w.size
 }
 
-func (w workers[ReqT, ResT]) Count() int {
+func (w *workers[ReqT, ResT]) Count() int {
 	return w.counter.Get()
 }
 
-func (w workers[ReqT, ResT]) IsClosed() bool {
+func (w *workers[ReqT, ResT]) IsClosed() bool {
 	return w.closed
 }
 
 func (w workers[ReqT, ResT]) Execute(
 	request []Request[ReqT],
 ) []<-chan Response[ResT] {
-	if !w.closed {
+	if w.closed {
 		return nil
 	}
 	ret := make([]<-chan Response[ResT], len(request))
-	for _, value := range request {
+	for i, value := range request {
 		channel := make(chan Response[ResT], 1)
-		go func(req Request[ReqT], responseChan chan Response[ResT]) {
+		go func(req Request[ReqT], resChan chan Response[ResT]) {
 			w.counter.Incr(1)
 			res := w.fn(req)
-			responseChan <- res
-			close(responseChan)
+			channel <- res
+			close(channel)
 			w.counter.Incr(-1)
 		}(value, channel)
-		ret = append(ret, channel)
+		ret[i] = channel
 	}
 	return ret
 }
