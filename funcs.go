@@ -13,47 +13,31 @@ func WorkersWithFunc[ReqT any, ResT any](
 	if size <= 0 {
 		size = 1
 	}
-	workers := workers[ReqT, ResT]{
-		workChan: make(chan coupled[ReqT, ResT], size),
-		size:     size,
-		end:      make(chan bool),
-		mtx:      sync.Mutex{},
-		cnt:      0,
+	workers := &workers[ReqT, ResT]{
+		fn:   fn,
+		size: size,
+		cnt:  newCounter(),
 	}
-	go func() {
-		for {
-			select {
-			case val := <-workers.workChan:
-				go func() {
-					res := fn(val.request)
-					val.responseChan <- res
-					close(val.responseChan)
-				}()
-			case <-workers.end:
-				close(workers.workChan)
-			}
-		}
-	}()
 	return workers
 }
 
-func ResponseWithStatus[T any](err error, body T) Response[T] {
-	return response[T]{
+func ResponseWithError[T any](err error, body T) Response[T] {
+	return &response[T]{
 		body: body,
 		err:  err,
 	}
 }
 
 func StartManager[ReqT any, ResT any]() Manager[ReqT, ResT] {
-	return manager[ReqT, ResT]{
-		workers: map[string]Workers[ReqT, ResT]{},
+	return &manager[ReqT, ResT]{
+		pool: sync.Map{},
 	}
 }
 
 func RequestWithCtx[ReqT any](
 	body ReqT, ctx context.Context,
 ) Request[ReqT] {
-	return request[ReqT]{
+	return &request[ReqT]{
 		body: body,
 		ctx:  ctx,
 	}
