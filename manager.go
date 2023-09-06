@@ -13,6 +13,12 @@ type (
 	}
 )
 
+func StartManager[ReqT any, ResT any]() Manager[ReqT, ResT] {
+	return &manager[ReqT, ResT]{
+		pool: sync.Map{},
+	}
+}
+
 func (m manager[ReqT, ResT]) Put(
 	key any, worker Workers[ReqT, ResT],
 ) error {
