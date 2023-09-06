@@ -1,11 +1,13 @@
 package workers
 
+import "github.com/bumpsoo/workers/counter"
+
 type (
 	workers[ReqT any, ResT any] struct {
-		fn     work[ReqT, ResT]
-		size   int
-		cnt    *counter
-		closed bool
+		fn      work[ReqT, ResT]
+		size    int
+		counter *counter.Counter
+		closed  bool
 	}
 )
 
@@ -14,7 +16,7 @@ func (w workers[req, res]) Size() int {
 }
 
 func (w workers[ReqT, ResT]) Count() int {
-	return w.cnt.cnt
+	return w.counter.Get()
 }
 
 func (w workers[ReqT, ResT]) IsClosed() bool {
@@ -31,11 +33,11 @@ func (w workers[ReqT, ResT]) Execute(
 	for _, value := range request {
 		channel := make(chan Response[ResT], 1)
 		go func(req Request[ReqT], responseChan chan Response[ResT]) {
-			w.cnt.incr(1)
+			w.counter.Incr(1)
 			res := w.fn(req)
 			responseChan <- res
 			close(responseChan)
-			w.cnt.incr(-1)
+			w.counter.Incr(-1)
 		}(value, channel)
 		ret = append(ret, channel)
 	}
@@ -43,7 +45,7 @@ func (w workers[ReqT, ResT]) Execute(
 }
 
 func (w *workers[req, res]) Close() {
-	cnt := w.cnt.get()
+	cnt := w.counter.Get()
 	if cnt > 0 {
 		w.Close()
 	} else {

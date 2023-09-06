@@ -1,11 +1,15 @@
 package workers
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/bumpsoo/workers/counter"
+)
 
 type (
 	manager[ReqT any, ResT any] struct {
 		pool sync.Map
-		cnt  *counter
+		cnt  *counter.Counter
 	}
 )
 
@@ -16,7 +20,7 @@ func (m manager[ReqT, ResT]) Put(
 	if loaded {
 		return newError(MANAGER_KEY_OCCUPIED)
 	} else {
-		m.cnt.incr(1)
+		m.cnt.Incr(1)
 	}
 	return nil
 }
@@ -49,6 +53,6 @@ func (m manager[ReqT, ResT]) Close(key any) error {
 }
 
 func (m manager[ReqT, ResT]) Count() int {
-	val := m.cnt.get()
+	val := m.cnt.Get()
 	return val
 }

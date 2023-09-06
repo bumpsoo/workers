@@ -3,6 +3,8 @@ package workers
 import (
 	"context"
 	"sync"
+
+	"github.com/bumpsoo/workers/counter"
 )
 
 type work[ReqT any, ResT any] func(Request[ReqT]) Response[ResT]
@@ -14,9 +16,9 @@ func WorkersWithFunc[ReqT any, ResT any](
 		size = 1
 	}
 	workers := &workers[ReqT, ResT]{
-		fn:   fn,
-		size: size,
-		cnt:  newCounter(),
+		fn:      fn,
+		size:    size,
+		counter: counter.NewCounter(),
 	}
 	return workers
 }
