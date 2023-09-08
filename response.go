@@ -7,15 +7,7 @@ type (
 	}
 )
 
-func Success[T any](body T) Response[T] {
-	return responseWithError(body, nil)
-}
-
-func Fail[T any](body T, err error) Response[T] {
-	return responseWithError(body, err)
-}
-
-func responseWithError[T any](body T, err error) Response[T] {
+func InitResponse[T any](body T, err error) Response[T] {
 	return &response[T]{body: body, err: err}
 }
 

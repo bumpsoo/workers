@@ -8,7 +8,6 @@ import (
 )
 
 type (
-	work[ReqT any, ResT any] func(Request[ReqT]) Response[ResT]
 	// Use workers.WorkersWithFunc
 	Workers[ReqT any, ResT any] interface {
 		// Execute passed requests

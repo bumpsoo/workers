@@ -6,7 +6,7 @@ import (
 
 type (
 	workers[ReqT any, ResT any] struct {
-		fn      work[ReqT, ResT]
+		fn      Work[ReqT, ResT]
 		size    int
 		counter *counter.Counter
 		closed  bool
@@ -14,7 +14,7 @@ type (
 )
 
 func StartWorkers[ReqT any, ResT any](
-	fn work[ReqT, ResT], size int,
+	fn Work[ReqT, ResT], size int,
 ) Workers[ReqT, ResT] {
 	if size <= 0 {
 		size = 1
@@ -51,7 +51,7 @@ func (w workers[ReqT, ResT]) Execute(
 		channel := make(chan Response[ResT], 1)
 		go func(req Request[ReqT], resChan chan Response[ResT]) {
 			w.counter.Incr(1)
-			res := w.fn(req)
+			res := w.fn.Execute(req)
 			channel <- res
 			close(channel)
 			w.counter.Incr(-1)
