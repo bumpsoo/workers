@@ -9,7 +9,7 @@ import (
 type Work[ReqT any, ResT any] interface {
 	Start(size int) Workers[ReqT, ResT]
 
-	Execute(request Request[ReqT]) Response[ResT]
+	execute(request Request[ReqT]) Response[ResT]
 }
 
 type work[ReqT any, ResT any] func(Request[ReqT]) Response[ResT]
@@ -46,6 +46,6 @@ func (w work[ReqT, ResT]) Start(size int) Workers[ReqT, ResT] {
 	return workers
 }
 
-func (w work[ReqT, ResT]) Execute(request Request[ReqT]) Response[ResT] {
+func (w work[ReqT, ResT]) execute(request Request[ReqT]) Response[ResT] {
 	return w(request)
 }

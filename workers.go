@@ -51,7 +51,7 @@ func (w workers[ReqT, ResT]) Execute(
 		channel := make(chan Response[ResT], 1)
 		go func(req Request[ReqT], resChan chan Response[ResT]) {
 			w.counter.Incr(1)
-			res := w.fn.Execute(req)
+			res := w.fn.execute(req)
 			channel <- res
 			close(channel)
 			w.counter.Incr(-1)
